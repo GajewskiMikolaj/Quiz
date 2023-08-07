@@ -4,10 +4,10 @@ window.onload = function() {
 
 class Quiz {
     questions = [
-        {q: "W którym roku jem?", answers: ["2019", "2018", "2008", "2017"], correctAnswer: 1 },
-        {q: "W którym roku zjadłem robaka?", answers: ["2019", "2018", "2008", "2017"], correctAnswer: 2 },
-        {q: "W którym roku zjadłem?", answers: ["2019", "2018", "2008", "2017"], correctAnswer: 3 },
-        {q: "W którym roku?", answers: ["2019", "2018", "2008", "2017"], correctAnswer: 1 },
+        {q: "W którym roku jadłem pierwszego Big Maca?", answers: ["2019", "2018", "2008", "2017"], correctAnswer: 1 },
+        {q: "Ile mam w bicepsie?", answers: ["23", "2018", "2008", "2017"], correctAnswer: 2 },
+        {q: "Kiedy pojedziemy na wakacje?", answers: ["Nigdy", "Teraz", "Za miesiąc", "Październik"], correctAnswer: 3 },
+        {q: "W którym roku urodził się twój stary?", answers: ["2019", "2018", "2008", "2017"], correctAnswer: 1 },
     ];
 
 
@@ -23,9 +23,11 @@ class Quiz {
 
     userSelectedInput = null;
     userCorrectAnswersNum = 0;
-    userBadAsnwersNUm = 0;
+    userBadAsnwersNum = 0;
     saveAnswerBtn = null;
     nextQuestionBtn = null;
+
+    modalWindow = null
 
     init() {
         this.heading = document.querySelector(".alert-heading");
@@ -42,10 +44,38 @@ class Quiz {
         
         this.saveAnswerBtn.addEventListener('click', this.checkAnswer)
         this.nextQuestionBtn.addEventListener('click', this.setNextQuestionData)
+
+        this.initModal()
+    }
+
+    initModal = () => {
+        this.modalWindow = new bootstrap.Modal(document.getElementById("modalWindow"))
+
+        document.getElementById("closeModal").addEventListener('click', this.restartQuiz)
     }
 
     checkAnswer = () => {
-        
+        this.userSelectedInput = document.querySelector("input[type='radio']:checked")
+        if(!this.userSelectedInput) return
+
+        const selectedIndex = this.userSelectedInput.getAttribute("data-index")
+
+        if(selectedIndex == this.correctAnswerNum) {
+            this.userCorrectAnswersNum++
+            this.userSelectedInput.classList.add("is-valid")
+        } else {
+            this.userBadAsnwersNum++
+            this.userSelectedInput.classList.add("is-invalid")
+        }
+
+        this.setUserStats()
+        this.saveAnswerBtn.classList.add("disabled")
+        this.nextQuestionBtn.classList.remove("disabled")
+    }
+
+    setUserStats = () => {
+        document.getElementById("correctAsnwers").innerHTML = this.userCorrectAnswersNum
+        document.getElementById("badAnswers").innerHTML = this.userBadAsnwersNum
     }
 
     setNextQuestionData = () => {
@@ -53,6 +83,7 @@ class Quiz {
 
         if(this.currentQuestionIndex >= this.questions.length) {
             console.log("End quiz");
+            this.showModalResults()
             return;
         }
 
@@ -66,6 +97,38 @@ class Quiz {
         this.answer2.innerHTML = question.answers[2]
         this.answer3.innerHTML = question.answers[3]
         this.correctAnswerNum = question.correctAnswer
+
+        document.querySelectorAll("input[type='radio']").forEach((el) => {
+            el.classList.remove("is-valid")
+            el.classList.remove("is-invalid")
+            el.checked = false
+        }) 
+
+        this.saveAnswerBtn.classList.remove("disabled")
+        this.nextQuestionBtn.classList.add("disabled")
+    }
+
+    showModalResults = () => {
+        const modalParagraph = document.getElementById("modalResults")
+
+        let information
+        if(this.userCorrectAnswersNum >= this.userBadAsnwersNum) {
+            information = "Congratulations! Half of answers is correct"
+        } else {
+            information = "Sorry, less than half is correct. Try later :("
+        }
+
+        modalParagraph.innerHTML = information
+        this.modalWindow.toggle()
+    }
+
+    restartQuiz = () => {
+        this.currentQuestionIndex = -1
+        this.userCorrectAnswersNum = 0
+        this.userBadAsnwersNum = 0
+
+        this.setUserStats()
+        this.setNextQuestionData()
     }
 }
 
